@@ -9,8 +9,8 @@
 
 static unsigned long long seed = 1;
 
-double drand48(void);
+double wdrand48(void);
 
-void srand48(unsigned int i);
+void wsrand48(unsigned int i);
 
 #endif

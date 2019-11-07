@@ -6,7 +6,7 @@ glm::vec3 random_in_unit_sphere()
 	do {
 		// random point in unit cube
 		// cast range to [0,2] then minus (1,1,1) cast range to [-1,1]
-		p = 2.0f * glm::vec3(drand48(), drand48(), drand48()) - glm::vec3(1, 1, 1);
+		p = 2.0f * glm::vec3(wdrand48(), wdrand48(), wdrand48()) - glm::vec3(1, 1, 1);
 	} while (glm::length(p) >= 1.0f);// reject the point if it is outside the sphere
 
 	return p;
