@@ -35,7 +35,11 @@ int main(void)
     Camera cam;
 
     std::ofstream output;
+#ifdef __APPLE__
+    output.open("./outputs/Hitable_lambertian_metal_fuzz_delectric_on_macos_HighAA.ppm", std::ofstream::binary);
+#elif _WIN32
     output.open("D:\\C++Projects\\RayTracer\\outputs\\Hitable_lambertian_metal_fuzz_dieletric_on_win32_HighAA.ppm", std::ofstream::binary);
+#endif
     output << "P6\n" << nx << "\n" << ny << "\n255\n";
     for (int j = ny-1; j >= 0; j--)
     {
