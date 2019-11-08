@@ -10,8 +10,8 @@
 #define PBWIDTH 60
 
 const float FOV = 60.0;
-const int nx = 800;
-const int ny = 600;
+const int nx = 400;
+const int ny = 300;
 const int ns = 100;
 
 void printProgress(double percentage);
@@ -28,19 +28,23 @@ int main(void)
     list[0] = new Sphere(glm::vec3(0, 0, -1.5), 0.5, new lambertian(glm::vec3(0.3, 0.3, 0.8)));
     list[1] = new Sphere(glm::vec3(0, -100.5, -1.5), 100, new lambertian(glm::vec3(0.5, 0.5, 0.5)));
     list[2] = new Sphere(glm::vec3(1.2, 0, -1.5), 0.5, new lambertian(glm::vec3(0.8, 0.6, 0.2)));
-    list[3] = new Sphere(glm::vec3(-1.8, 0, -1.5), 0.5, new metal(glm::vec3(0.3, 0.9, 0.3), 0.3));
+    list[3] = new Sphere(glm::vec3(-1.8, 0, -1.5), 0.5, new metal(glm::vec3(0.3, 0.9, 0.3), 0.01));
     list[4] = new Sphere(glm::vec3(0.4, -0.2, -1.0), 0.3, new dielectirc(glm::vec3(1.0, 1.0, 1.0), 1.3));
     list[5] = new Sphere(glm::vec3(-0.5, -0.15, -1.0), 0.35, new dielectirc(glm::vec3(1.0, 0, 0), 1.1));
     list[6] = new Sphere(glm::vec3(-0.5, -0.15, -1.0), -0.3, new dielectirc(glm::vec3(1.0, 0, 0), 1.1));
     Hitable *world = new HitableList(list, 7);
 
-    Camera cam(FOV, float(nx)/float(ny), glm::vec3(2, 2, 1), glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, 1.0, 0.0));
+	glm::vec3 cam_pos(2,2,1);
+	glm::vec3 cam_target(0, 0, -1);
+	float cam_aperture = 0.05;
+	float focus_dis = glm::length(cam_pos - cam_target);
+    Camera cam(FOV, float(nx)/float(ny), cam_pos, cam_target, glm::vec3(0.0, 1.0, 0.0), cam_aperture, focus_dis);
 
     std::ofstream output;
 #ifdef __APPLE__
     output.open("./outputs/MacOS_PositionableCamera.ppm", std::ofstream::binary);
-#elif _WIN32
-    output.open("D:\\C++Projects\\RayTracer\\outputs\\Win32_PositionableCamera.ppm", std::ofstream::binary);
+#elif defined(_WIN32) || defined(_WIN64)
+    output.open("D:\\C++Projects\\RayTracer\\outputs\\Win32_DepthOfViewTest_low_aperture.ppm", std::ofstream::binary);
 #endif
     output << "P6\n" << nx << "\n" << ny << "\n255\n";
     for (int j = ny-1; j >= 0; j--)
