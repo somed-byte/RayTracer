@@ -9,6 +9,11 @@
 #define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
 #define PBWIDTH 60
 
+const float FOV = 60.0;
+const int nx = 800;
+const int ny = 600;
+const int ns = 100;
+
 void printProgress(double percentage);
 void WritePPM_P3(const char* filename, int nx, int ny);
 void WritePPM_P6(const char* filename, int nx, int ny);
@@ -17,9 +22,6 @@ glm::vec3 color(const Ray& r, Hitable *world, int depth);
 int main(void)
 {
     // P6_Intersect("./outputs/pure_color_sphere.ppm", 512, 512);
-    int nx = 400;
-    int ny = 300;
-    int ns = 100;
 	int progress_percentage = 0;
 
     Hitable *list[7];
@@ -32,11 +34,11 @@ int main(void)
     list[6] = new Sphere(glm::vec3(-0.5, -0.15, -1.0), -0.3, new dielectirc(glm::vec3(1.0, 0, 0), 1.1));
     Hitable *world = new HitableList(list, 7);
 
-    Camera cam;
+    Camera cam(FOV, float(nx)/float(ny), glm::vec3(-2, 2, 1), glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, 1.0, 0.0));
 
     std::ofstream output;
 #ifdef __APPLE__
-    output.open("./outputs/Hitable_lambertian_metal_fuzz_delectric_on_macos_HighAA.ppm", std::ofstream::binary);
+    output.open("./outputs/MacOS_PositionableCamera.ppm", std::ofstream::binary);
 #elif _WIN32
     output.open("D:\\C++Projects\\RayTracer\\outputs\\Hitable_lambertian_metal_fuzz_dieletric_on_win32_HighAA.ppm", std::ofstream::binary);
 #endif

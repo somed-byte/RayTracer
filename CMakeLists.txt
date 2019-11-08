@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 2.8)
 cmake_policy(VERSION 2.8)
 project(RayTracer)
 
+#GLM
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/RayTacer/includes/glm)
+#Custom Include
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/RayTracer/includes)
 
 add_library(BasicLib
