@@ -34,13 +34,13 @@ int main(void)
     list[6] = new Sphere(glm::vec3(-0.5, -0.15, -1.0), -0.3, new dielectirc(glm::vec3(1.0, 0, 0), 1.1));
     Hitable *world = new HitableList(list, 7);
 
-    Camera cam(FOV, float(nx)/float(ny), glm::vec3(-2, 2, 1), glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, 1.0, 0.0));
+    Camera cam(FOV, float(nx)/float(ny), glm::vec3(2, 2, 1), glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, 1.0, 0.0));
 
     std::ofstream output;
 #ifdef __APPLE__
     output.open("./outputs/MacOS_PositionableCamera.ppm", std::ofstream::binary);
 #elif _WIN32
-    output.open("D:\\C++Projects\\RayTracer\\outputs\\Hitable_lambertian_metal_fuzz_dieletric_on_win32_HighAA.ppm", std::ofstream::binary);
+    output.open("D:\\C++Projects\\RayTracer\\outputs\\Win32_PositionableCamera.ppm", std::ofstream::binary);
 #endif
     output << "P6\n" << nx << "\n" << ny << "\n255\n";
     for (int j = ny-1; j >= 0; j--)
@@ -53,8 +53,8 @@ int main(void)
             // Antialiasing
             for(int s = 0; s < ns; ++s)
             {
-                float u = float(i + drand48())/float(nx);
-                float v = float(j + drand48())/float(ny);
+                float u = float(i + wdrand48())/float(nx);
+                float v = float(j + wdrand48())/float(ny);
                 Ray r = cam.get_ray(u, v);
                 c += color(r, world, 0);
             }

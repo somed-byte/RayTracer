@@ -95,7 +95,7 @@ class dielectirc : public material
                 reflect_prob = 1.0;
             }
             // use drand48() to decide reflection or refraction
-            if (drand48() < reflect_prob)
+            if (wdrand48() < reflect_prob)
             {
                 scattered = Ray(rec.p, reflected);
             } 

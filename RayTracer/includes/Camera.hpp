@@ -1,8 +1,10 @@
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 
+#define _USE_MATH_DEFINES
 #include "Ray.hpp"
 #include "glm/glm.hpp"
+#include <math.h>
 
 class Camera
 {
