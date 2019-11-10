@@ -33,6 +33,9 @@
     <ClCompile Include="includes\drand48.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="AABB.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="includes\Camera.hpp">
@@ -48,6 +51,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="includes\drand48.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AABB.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

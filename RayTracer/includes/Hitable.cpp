@@ -37,6 +37,14 @@ bool Sphere::hit(const Ray& r, float t_min, float t_max, hit_record& rec) const
     return false;
 };
 
+// this function dont need t_min & t_max
+bool Sphere::bounding_box(aabb& box, float t_min, float t_max) const
+{
+	glm::vec3 sbox = glm::vec3(radius, radius, radius);
+	box = aabb(center - sbox, center + sbox);
+	return true;
+};
+
 bool HitableList::hit(const Ray& r, float t_min, float t_max, hit_record& rec) const
 {
     hit_record tmp_rec;
@@ -55,3 +63,73 @@ bool HitableList::hit(const Ray& r, float t_min, float t_max, hit_record& rec) c
 
     return hit_anything;
 };
+
+bool HitableList::bounding_box(aabb& box, float t_min, float t_max) const
+{
+	if (size < 1) return false;
+	aabb tmp_box;
+	bool result = list[0]->bounding_box(tmp_box, t_min, t_max);
+	if (!result)
+	{
+		return false;
+	}
+	else
+	{
+		box = tmp_box;
+	}
+	for (int i = 1; i < size; ++i)
+	{
+		if (list[i]->bounding_box(tmp_box, t_min, t_max))
+		{
+			box = surrounding_box(box, tmp_box);// combine the bounding boxes
+		}
+		else
+		{
+			return false;
+		}
+	}
+	return true;
+};
+
+bvh_node::bvh_node(Hitable** l, int n)
+{
+
+};
+
+bool bvh_node::hit(const Ray& r, float t_min, float t_max, hit_record& rec) const
+{
+	if (bvh_box.hit(r, t_min, t_max))
+	{
+		hit_record lrec, rrec;
+		bool lhit = left->hit(r, t_min, t_max, lrec);
+		bool rhit = right->hit(r, t_min, t_max, rrec);
+		if (lhit && rhit)
+		{
+			rec = lrec.t < rrec.t ? lrec : rrec;
+			return true;
+		}
+		else if (lhit)
+		{
+			rec = lrec;
+			return true;
+		}
+		else if (rhit)
+		{
+			rec = rrec;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	else
+	{
+		return false;
+	}
+};
+
+bool bvh_node::bounding_box(aabb& box, float t_min, float t_max) const {
+	box = bvh_box;
+	return true;
+}
