@@ -12,27 +12,41 @@
 const float FOV = 60.0;
 const int nx = 400;
 const int ny = 300;
-const int ns = 100;
+const int ns = 200;
 
 void printProgress(double percentage);
 void WritePPM_P3(const char* filename, int nx, int ny);
 void WritePPM_P6(const char* filename, int nx, int ny);
 glm::vec3 color(const Ray& r, Hitable *world, int depth);
 
+Hitable *light_scene()
+{
+    Hitable **list = new Hitable*[5];
+    list[0] = new Sphere(glm::vec3(0, 0, -1.5), 0.5, new lambertian(glm::vec3(0.3, 0.3, 0.8)));
+    list[1] = new Sphere(glm::vec3(0, -1000.5, -1.5), 1000, new lambertian(glm::vec3(0.5, 0.5, 0.5)));
+    list[2] = new Sphere(glm::vec3(2.0, 0, -1.5), 0.5, new lambertian(glm::vec3(0.8, 0.6, 0.2)));
+    list[3] = new Sphere(glm::vec3(1.0, 0, -1.0), 0.3, new DiffuseLight(glm::vec3(4.0, 4.0, 4.0)));
+    list[4] = new Rect_xy(-1, 1, 0, 1, -5, new DiffuseLight(glm::vec3(4.0, 4.0, 4.0)));
+    return new HitableList(list, 5);
+}
+
 int main(void)
 {
     // P6_Intersect("./outputs/pure_color_sphere.ppm", 512, 512);
 	int progress_percentage = 0;
 
-    Hitable *list[7];
-    list[0] = new Sphere(glm::vec3(0, 0, -1.5), 0.5, new lambertian(glm::vec3(0.3, 0.3, 0.8)));
-    list[1] = new Sphere(glm::vec3(0, -100.5, -1.5), 100, new lambertian(glm::vec3(0.5, 0.5, 0.5)));
-    list[2] = new Sphere(glm::vec3(1.2, 0, -1.5), 0.5, new lambertian(glm::vec3(0.8, 0.6, 0.2)));
-    list[3] = new Sphere(glm::vec3(-1.8, 0, -1.5), 0.5, new metal(glm::vec3(0.3, 0.9, 0.3), 0.01));
-    list[4] = new Sphere(glm::vec3(0.4, -0.2, -1.0), 0.3, new dielectirc(glm::vec3(1.0, 1.0, 1.0), 1.3));
-    list[5] = new Sphere(glm::vec3(-0.5, -0.15, -1.0), 0.35, new dielectirc(glm::vec3(1.0, 0, 0), 1.1));
-    list[6] = new Sphere(glm::vec3(-0.5, -0.15, -1.0), -0.3, new dielectirc(glm::vec3(1.0, 0, 0), 1.1));
-    Hitable *world = new HitableList(list, 7);
+    // old scenes
+    //Hitable *list[7];
+    //list[0] = new Sphere(glm::vec3(0, 0, -1.5), 0.5, new lambertian(glm::vec3(0.3, 0.3, 0.8)));
+    //list[1] = new Sphere(glm::vec3(0, -100.5, -1.5), 100, new lambertian(glm::vec3(0.5, 0.5, 0.5)));
+    //list[2] = new Sphere(glm::vec3(1.2, 0, -1.5), 0.5, new lambertian(glm::vec3(0.8, 0.6, 0.2)));
+    //list[3] = new Sphere(glm::vec3(-1.8, 0, -1.5), 0.5, new metal(glm::vec3(0.3, 0.9, 0.3), 0.01));
+    //list[4] = new Sphere(glm::vec3(0.4, -0.2, -1.0), 0.3, new dielectirc(glm::vec3(1.0, 1.0, 1.0), 1.3));
+    //list[5] = new Sphere(glm::vec3(-0.5, -0.15, -1.0), 0.35, new dielectirc(glm::vec3(1.0, 0, 0), 1.1));
+    //list[6] = new Sphere(glm::vec3(-0.5, -0.15, -1.0), -0.3, new dielectirc(glm::vec3(1.0, 0, 0), 1.1));
+    //Hitable *world = new HitableList(list, 7);
+    
+    Hitable *world = light_scene();
 
 	glm::vec3 cam_pos(2,2,1);
 	glm::vec3 cam_target(0, 0, -1);
@@ -42,7 +56,7 @@ int main(void)
 
     std::ofstream output;
 #ifdef __APPLE__
-    output.open("./outputs/MacOS_PositionableCamera.ppm", std::ofstream::binary);
+    output.open("./outputs/MacOS_light_scene_emitted_4.0_farDistance.ppm", std::ofstream::binary);
 #elif defined(_WIN32) || defined(_WIN64)
     output.open("D:\\C++Projects\\RayTracer\\outputs\\Win32_DepthOfViewTest_low_aperture.ppm", std::ofstream::binary);
 #endif
@@ -77,7 +91,6 @@ int main(void)
     }
     output.close();
 
-    delete[] *list;
     delete world;
 }
 
@@ -89,22 +102,25 @@ glm::vec3 color(const Ray& r, Hitable *world, int depth)
     {
         Ray scattered;
         glm::vec3 attenuation; // to store the current hit color
+        glm::vec3 emitted = rec.mat_ptr->emitted();
         if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered))
         {
-            return attenuation * color(scattered, world, depth+1);
+            return emitted + attenuation * color(scattered, world, depth+1);
         }
         else
         {
-            return glm::vec3(0, 0, 0);
+            return emitted;
         }
     }
     else
     {
+        // ! DEPRECATED! dont use gradient color for background anymore
         // for background color generation
         // return glm::vec3(1.0, 1.0, 1.0);
-        glm::vec3 n_direction = glm::normalize(r.direction());
-        float t = 0.5 * n_direction.y + 0.5;
-        return glm::vec3(1.0, 1.0, 1.0) * (1-t) + t * glm::vec3(0.5, 0.8, 1.0);
+        ////glm::vec3 n_direction = glm::normalize(r.direction());
+        ////float t = 0.5 * n_direction.y + 0.5;
+        ////return glm::vec3(1.0, 1.0, 1.0) * (1-t) + t * glm::vec3(0.5, 0.8, 1.0);
+        return glm::vec3(0,0,0);
     }
 }
 

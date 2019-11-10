@@ -20,6 +20,11 @@ class material
 {
     public:
         virtual bool scatter(const Ray& r_in, const hit_record& rec, glm::vec3& attenuation, Ray& scattered) const = 0;
+        virtual glm::vec3 emitted() const
+        {
+            // for those which are not light source just return black and do need to implement this function
+            return glm::vec3(0.0, 0.0, 0.0);
+        };
 };
 
 class lambertian : public material
@@ -106,6 +111,21 @@ class dielectirc : public material
 
             return true;
         }
+};
+
+class DiffuseLight : public material
+{
+    glm::vec3 color;
+    public:
+        DiffuseLight(glm::vec3 light_col) : color(light_col) {};
+        virtual bool scatter(const Ray& r_in, const hit_record& rec, glm::vec3& attenuation, Ray& scattered) const
+        {
+            return false;
+        };
+        virtual glm::vec3 emitted() const
+        {
+            return color;
+        };
 };
 
 #endif

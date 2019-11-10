@@ -13,6 +13,7 @@ add_library(BasicLib
     "RayTracer/includes/Camera.cpp"
     "RayTracer/includes/material.cpp"
     "RayTracer/includes/drand48.cpp"
+    "RayTracer/includes/AABB.cpp"
 )
 
 add_executable(main "RayTracer/main.cpp")

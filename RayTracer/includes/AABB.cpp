@@ -1,6 +1,6 @@
 #include "AABB.hpp"
 
-bool aabb::hit(const Ray& ray, float t_min, float t_max) const
+bool aabb::hit(const Ray& ray, float t_min, float t_max, float& t0, float& t1) const
 {
 	glm::vec3 invR = 1.0f / ray.direction();
 	glm::vec3 tbot = invR * (_min - ray.origin()); // t0x,t0y,t0z
@@ -10,25 +10,27 @@ bool aabb::hit(const Ray& ray, float t_min, float t_max) const
 	glm::vec3 tmax = glm::max(tbot, ttop); // maximum x,y,z
 
 	// compare x to y/z to get biggest 2 components out of 3
-	glm::vec2 xx = tmin.xx;
-	glm::vec2 yz = tmin.yz;
+	glm::vec2 xx = glm::vec2(tmin.x, tmin.x);
+	glm::vec2 yz = glm::vec2(tmin.y, tmin.z);
 	glm::vec2 t = glm::max(xx, yz);
-	float t0 = fmax(t.x, t.y);// get the biggest out of 2
+	t0 = fmax(t.x, t.y);// get the biggest out of 2
 	t0 = fmin(t_max, t0);
 
 	// get smallest 2 components out of 3
-	xx = tmax.xx;
-	yz = tmin.yz;
+	xx = glm::vec2(tmax.x, tmax.x);
+	yz = glm::vec2(tmax.y, tmax.z);
 	t = glm::min(xx, yz);
-	float t1 = fmin(t.x, t.y);// get the smallest out of 2
+	t1 = fmin(t.x, t.y);// get the smallest out of 2
 	t1 = fmax(t_min, t1);
 
 	return t0 <= t1;
 };
 
+/* //TODO
 aabb surrounding_box(aabb box0, aabb box1)
 {
 	glm::vec3 small = glm::min(box0.min(), box1.min());
 	glm::vec3 big = glm::max(box0.max(), box1.max());
 	return aabb(small, big);
 };
+*/
