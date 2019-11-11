@@ -54,29 +54,28 @@ bool Rect::hit(const Ray& r, float t_min, float t_max, hit_record& rec) const
 
 Cube::Cube(glm::vec3 center, glm::vec3 len, glm::vec3 _rotation, material *mat)
 {
-	rotation = glm::mat4(1.0f);
+	/*
+	glm::mat4 rotation = glm::mat4(1.0f);
 	rotation = glm::rotate(rotation, _rotation.x, glm::vec3(1, 0, 0));
 	rotation = glm::rotate(rotation, _rotation.y, glm::vec3(0, 1, 0));
 	rotation = glm::rotate(rotation, _rotation.z, glm::vec3(0, 0, 1));
 
-	glm::vec4 c1 = glm::vec4(center.x + len.x, center.y - len.y, center.z - len.z, 1.0);
-	glm::vec4 c2 = glm::vec4(center.x - len.x, center.y - len.y, center.z - len.z, 1.0);
-	glm::vec4 c3 = glm::vec4(center.x - len.x, center.y - len.y, center.z + len.z, 1.0);
-	glm::vec4 c4 = glm::vec4(center.x + len.x, center.y - len.y, center.z + len.z, 1.0);
+	glm::mat4 transfrom = glm::translate(glm::mat4(1.0f), center);
 
-	glm::vec4 c5 = glm::vec4(center.x + len.x, center.y + len.y, center.z - len.z, 1.0);
-	glm::vec4 c6 = glm::vec4(center.x - len.x, center.y + len.y, center.z - len.z, 1.0);
-	glm::vec4 c7 = glm::vec4(center.x - len.x, center.y + len.y, center.z + len.z, 1.0);
-	glm::vec4 c8 = glm::vec4(center.x + len.x, center.y + len.y, center.z + len.z, 1.0);
+	glm::vec4 test = glm::vec4(0.0, 0.0, 0.0, 1.0);
+	test = transfrom * test;
+	std::cout << test.x << "," << test.y << "," << test.z << std::endl;
 
-	c1 = rotation * c1;
-	c2 = rotation * c2;
-	c3 = rotation * c3;
-	c4 = rotation * c4;
-	c5 = rotation * c5;
-	c6 = rotation * c6;
-	c7 = rotation * c7;
-	c8 = rotation * c8;
+	// model space coords
+	glm::vec4 cp = glm::vec4(len.x, len.y, len.z, 1.0);
+	glm::vec4 cm = glm::vec4(-len.x, -len.y, -len.z, 1.0);
+	glm::vec4 cpp = glm::vec4(cp.x + 0.001f, cp.y + 0.001f, cp.z + 0.001f, 1.0);
+	glm::vec4 cmp = glm::vec4(cm.x + 0.001f, cm.y + 0.001f, cm.z + 0.001f, 1.0);
+
+	cp = transfrom * rotation * cp;
+	cm = transfrom * rotation * cm;
+	cpp = transfrom * rotation * cpp;
+	cmp = transfrom * rotation * cmp;
 
 	glm::vec3 n1 = rotation * glm::vec4(0, 0, -1, 0);
 	glm::vec3 n2 = rotation * glm::vec4(0, 0, 1, 0);
@@ -87,15 +86,20 @@ Cube::Cube(glm::vec3 center, glm::vec3 len, glm::vec3 _rotation, material *mat)
 
 	Hitable** l = new Hitable*[6];
 	int i = 0;
-	l[i++] = new Rect(c2.x, c1.x, c2.y, c5.y, c1.z, c1.z + 0.001f, n1, mat);
-	l[i++] = new Rect(c2.x, c1.x, c2.y, c5.y, c3.z, c3.z + 0.001f, n2, mat);
 
-	l[i++] = new Rect(c2.x, c2.x + 0.001f, c2.y, c5.y, c1.z, c3.z, n3, mat);
-	l[i++] = new Rect(c1.x, c1.x + 0.001f, c2.y, c5.y, c1.z, c3.z, n4, mat);
+	l[i++] = new Rect(cm.x, cp.x, cm.y, cp.y, cm.z, cmp.z, n1, mat);
+	l[i++] = new Rect(cm.x, cp.x, cm.y, cp.y, cp.z, cpp.z, n2, mat);
 
-	l[i++] = new Rect(c2.x, c1.x, c2.y, c2.y + 0.001f, c1.z, c3.z, n5, mat);
-	l[i++] = new Rect(c2.x, c1.x, c5.y, c5.y + 0.001f, c1.z, c3.z, n5, mat);
-	/*
+	l[i++] = new Rect(cm.x, cmp.x, cm.y, cp.y, cm.z, cp.z, n3, mat);
+	l[i++] = new Rect(cp.x, cpp.x, cm.y, cp.y, cm.z, cp.z, n4, mat);
+
+	l[i++] = new Rect(cm.x, cp.x, cm.y, cmp.y, cm.z, cp.z, n5, mat);
+	l[i++] = new Rect(cm.x, cp.x, cp.y, cpp.y, cm.z, cp.z, n6, mat);
+	*/
+
+	Hitable** l = new Hitable*[6];
+	int i = 0;
+	
 	l[i++] = new Rect(center.x - len.x, center.x + len.x, center.y - len.y, center.y + len.y, center.z - len.z, center.z - len.z + 0.001f, glm::vec3(0, 0, -1), mat);
 	l[i++] = new Rect(center.x - len.x, center.x + len.x, center.y - len.y, center.y + len.y, center.z + len.z, center.z + len.z + 0.001f, glm::vec3(0, 0, 1), mat);
 
@@ -104,7 +108,7 @@ Cube::Cube(glm::vec3 center, glm::vec3 len, glm::vec3 _rotation, material *mat)
 
 	l[i++] = new Rect(center.x - len.x, center.x + len.x, center.y - len.y, center.y - len.y + 0.001f, center.z - len.z, center.z + len.z, glm::vec3(0, -1, 0), mat);
 	l[i++] = new Rect(center.x - len.x, center.x + len.x, center.y + len.y, center.y + len.y + 0.001f, center.z - len.z, center.z + len.z, glm::vec3(0, 1, 0), mat);
-	*/
+
 	list = new HitableList(l, i);
 };
 

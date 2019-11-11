@@ -8,11 +8,10 @@
 
 #define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
 #define PBWIDTH 60
-#define _USE_MATH_DEFINES
 
-const int nx = 400;
-const int ny = 300;
-const int ns = 50;
+const int nx = 800;
+const int ny = 600;
+const int ns = 200;
 
 void printProgress(double percentage);
 void WritePPM_P3(const char* filename, int nx, int ny);
@@ -43,15 +42,6 @@ Hitable* light_scene()
 	return new HitableList(list, 5);
 }
 
-Hitable* test_mirror()
-{
-	Hitable** list = new Hitable * [3];
-	list[0] = new Sphere(glm::vec3(0, 0, -1.5), 0.5, new metal(glm::vec3(1, 0, 0), 0.01));
-	list[1] = new Sphere(glm::vec3(1.2, 0, -1.5), 0.5, new metal(glm::vec3(0, 1, 0), 0.01));
-	list[2] = new Rect(-1, 1, 0, 1, -3, -3 + 0.0001, glm::vec3(0, 0, 1), new DiffuseLight(glm::vec3(1.0, 1.0, 1.0)));
-	return new HitableList(list, 3);
-}
-
 Hitable* cornell_box()
 {
 	Hitable** list = new Hitable * [9];
@@ -62,19 +52,19 @@ Hitable* cornell_box()
 	material* light = new DiffuseLight(glm::vec3(15, 15, 15));
 	// cornell box: 5
 	//x0  x1  y0  y1  z0  z1
-	list[i++] = new Rect(555, 555.001f, 0, 555, 0, 555, glm::vec3(-1, 0, 0), green);
-	list[i++] = new Rect(0, 0.001f, 0, 555, 0, 555, glm::vec3(1, 0, 0), red);
-	list[i++] = new Rect(0, 555, 555, 555.001f, 0, 555, glm::vec3(0, -1, 0), white);
-	list[i++] = new Rect(0, 555, 0, 0.001f, 0, 555, glm::vec3(0, 1, 0), white);
-	list[i++] = new Rect(0, 555, 0, 555, 555, 555.001f, glm::vec3(0, 0, -1), white);
+	list[i++] = new Rect(5, 5.001f, 0, 5, 0, 5, glm::vec3(-1, 0, 0), green);
+	list[i++] = new Rect(0, 0.001f, 0, 5, 0, 5, glm::vec3(1, 0, 0), red);
+	list[i++] = new Rect(0, 5, 5, 5.001f, 0, 5, glm::vec3(0, -1, 0), white);
+	list[i++] = new Rect(0, 5, 0, 0.001f, 0, 5, glm::vec3(0, 1, 0), white);
+	list[i++] = new Rect(0, 5, 0, 5, 5, 5.001f, glm::vec3(0, 0, -1), white);
 	// diffuse light: 1
-	list[i++] = new Rect(213, 343, 554, 554.001f, 227, 332, glm::vec3(0, -1, 0), light);
+	list[i++] = new Rect(2.2, 3.4, 5, 5.001f, 2.3, 3.3, glm::vec3(0, -1, 0), light);
 
 	// inside the box
 		// mirrors
-	list[i++] = new Rect(554, 554.001f, 139, 417, 111, 444, glm::vec3(-1, 0, 0), new metal(glm::vec3(1.0, 1.0, 1.0), 0.0));
-	list[i++] = new Sphere(glm::vec3(150, 100, 150), 80, white);
-	list[i++] = new Cube(glm::vec3(400, 150, 333), glm::vec3(80, 150, 80), glm::vec3(0, 45 * M_PI / 180, 0), white);
+	list[i++] = new Rect(4.99, 4.991f, 1.4, 4.1, 1.1, 4.4, glm::vec3(-1, 0, 0), new metal(glm::vec3(1.0, 1.0, 1.0), 0.0));
+	list[i++] = new Sphere(glm::vec3(1.5, 1, 1.), 0.8, white);
+	list[i++] = new Cube(glm::vec3(3.0, 1, 2.5), glm::vec3(0.6, 1, 0.6), glm::vec3(0, glm::radians(45.0f), 0), white);
 
 	return new HitableList(list, i);
 }
@@ -93,8 +83,8 @@ Camera set_camera_simple()
 Camera set_camera_cornell_box()
 {
 	float FOV = 40.0;
-	glm::vec3 cam_pos(278, 278, -800);
-	glm::vec3 cam_target(278, 278, 0);
+	glm::vec3 cam_pos(2.5, 2.5, -7);
+	glm::vec3 cam_target(2.5, 2.5, 0);
 	float cam_aperture = 0.0;
 	float focus_dis = 10;
 	Camera cam(FOV, float(nx) / float(ny), cam_pos, cam_target, glm::vec3(0.0, 1.0, 0.0), cam_aperture, focus_dis);
@@ -111,7 +101,7 @@ int main(void)
 
     std::ofstream output;
 #ifdef __APPLE__
-    output.open("./outputs/MacOS_light_scene_emitted_4.0_farDistance.ppm", std::ofstream::binary);
+    output.open("./outputs/MacOS_cornell_box_final.ppm", std::ofstream::binary);
 #elif defined(_WIN32) || defined(_WIN64)
     output.open("D:\\C++Projects\\RayTracer\\outputs\\Win32_cornell_box_with_mirror.ppm", std::ofstream::binary);
 #endif

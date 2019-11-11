@@ -56,7 +56,6 @@ class Cube : public Hitable
 {
 public:
 	Hitable *list;
-	glm::mat4 rotation;
 	Cube() {};
 	Cube(glm::vec3 center, glm::vec3 len, glm::vec3 _rotation, material *mat);
 	virtual bool hit(const Ray& r, float t_min, float t_max, hit_record& rec) const;
