@@ -125,7 +125,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AABB.cpp" />
+    <ClCompile Include="includes\AABB.cpp" />
     <ClCompile Include="includes\Camera.cpp" />
     <ClCompile Include="includes\drand48.cpp" />
     <ClCompile Include="includes\Hitable.cpp" />
@@ -134,7 +134,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AABB.hpp" />
+    <ClInclude Include="includes\AABB.hpp" />
     <ClInclude Include="includes\Camera.hpp" />
     <ClInclude Include="includes\drand48.hpp" />
     <ClInclude Include="includes\Hitable.hpp" />

@@ -8,57 +8,112 @@
 
 #define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
 #define PBWIDTH 60
+#define _USE_MATH_DEFINES
 
-const float FOV = 60.0;
 const int nx = 400;
 const int ny = 300;
-const int ns = 200;
+const int ns = 50;
 
 void printProgress(double percentage);
 void WritePPM_P3(const char* filename, int nx, int ny);
 void WritePPM_P6(const char* filename, int nx, int ny);
 glm::vec3 color(const Ray& r, Hitable *world, int depth);
 
-Hitable *light_scene()
+Hitable* simple_scene()
 {
-    Hitable **list = new Hitable*[5];
-    list[0] = new Sphere(glm::vec3(0, 0, -1.5), 0.5, new lambertian(glm::vec3(0.3, 0.3, 0.8)));
-    list[1] = new Sphere(glm::vec3(0, -1000.5, -1.5), 1000, new lambertian(glm::vec3(0.5, 0.5, 0.5)));
-    list[2] = new Sphere(glm::vec3(2.0, 0, -1.5), 0.5, new lambertian(glm::vec3(0.8, 0.6, 0.2)));
-    list[3] = new Sphere(glm::vec3(1.0, 0, -1.0), 0.3, new DiffuseLight(glm::vec3(4.0, 4.0, 4.0)));
-    list[4] = new Rect_xy(-1, 1, 0, 1, -5, new DiffuseLight(glm::vec3(4.0, 4.0, 4.0)));
-    return new HitableList(list, 5);
+	Hitable **list = new Hitable*[7];
+	list[0] = new Sphere(glm::vec3(0, 0, -1.5), 0.5, new lambertian(glm::vec3(0.3, 0.3, 0.8)));
+	list[1] = new Sphere(glm::vec3(0, -100.5, -1.5), 100, new lambertian(glm::vec3(0.5, 0.5, 0.5)));
+	list[2] = new Sphere(glm::vec3(1.2, 0, -1.5), 0.5, new lambertian(glm::vec3(0.8, 0.6, 0.2)));
+	list[3] = new Sphere(glm::vec3(-1.8, 0, -1.5), 0.5, new metal(glm::vec3(0.3, 0.9, 0.3), 0.01));
+	list[4] = new Sphere(glm::vec3(0.4, -0.2, -1.0), 0.3, new dielectirc(glm::vec3(1.0, 1.0, 1.0), 1.3));
+	list[5] = new Sphere(glm::vec3(-0.5, -0.15, -1.0), 0.35, new dielectirc(glm::vec3(1.0, 0, 0), 1.1));
+	list[6] = new Sphere(glm::vec3(-0.5, -0.15, -1.0), -0.3, new dielectirc(glm::vec3(1.0, 0, 0), 1.1));
+	return new HitableList(list, 7);
+}
+
+Hitable* light_scene()
+{
+	Hitable** list = new Hitable * [5];
+	list[0] = new Sphere(glm::vec3(0, 0, -1.5), 0.5, new lambertian(glm::vec3(0.3, 0.3, 0.8)));
+	list[1] = new Sphere(glm::vec3(0, -1000.5, -1.5), 1000, new lambertian(glm::vec3(0.5, 0.5, 0.5)));
+	list[2] = new Sphere(glm::vec3(2.0, 0, -1.5), 0.5, new lambertian(glm::vec3(0.8, 0.6, 0.2)));
+	list[3] = new Sphere(glm::vec3(1.0, 0, -1.0), 0.3, new DiffuseLight(glm::vec3(4.0, 4.0, 4.0)));
+	list[4] = new Rect(-1, 1, 0, 1, -5, -5 + 0.0001, glm::vec3(0, 0, 1), new DiffuseLight(glm::vec3(4.0, 4.0, 4.0)));
+	return new HitableList(list, 5);
+}
+
+Hitable* test_mirror()
+{
+	Hitable** list = new Hitable * [3];
+	list[0] = new Sphere(glm::vec3(0, 0, -1.5), 0.5, new metal(glm::vec3(1, 0, 0), 0.01));
+	list[1] = new Sphere(glm::vec3(1.2, 0, -1.5), 0.5, new metal(glm::vec3(0, 1, 0), 0.01));
+	list[2] = new Rect(-1, 1, 0, 1, -3, -3 + 0.0001, glm::vec3(0, 0, 1), new DiffuseLight(glm::vec3(1.0, 1.0, 1.0)));
+	return new HitableList(list, 3);
+}
+
+Hitable* cornell_box()
+{
+	Hitable** list = new Hitable * [9];
+	int i = 0;
+	material* red = new lambertian(glm::vec3(0.65, 0.05, 0.05));
+	material* green = new lambertian(glm::vec3(0.12, 0.45, 0.15));
+	material* white = new lambertian(glm::vec3(0.73, 0.73, 0.73));
+	material* light = new DiffuseLight(glm::vec3(15, 15, 15));
+	// cornell box: 5
+	//x0  x1  y0  y1  z0  z1
+	list[i++] = new Rect(555, 555.001f, 0, 555, 0, 555, glm::vec3(-1, 0, 0), green);
+	list[i++] = new Rect(0, 0.001f, 0, 555, 0, 555, glm::vec3(1, 0, 0), red);
+	list[i++] = new Rect(0, 555, 555, 555.001f, 0, 555, glm::vec3(0, -1, 0), white);
+	list[i++] = new Rect(0, 555, 0, 0.001f, 0, 555, glm::vec3(0, 1, 0), white);
+	list[i++] = new Rect(0, 555, 0, 555, 555, 555.001f, glm::vec3(0, 0, -1), white);
+	// diffuse light: 1
+	list[i++] = new Rect(213, 343, 554, 554.001f, 227, 332, glm::vec3(0, -1, 0), light);
+
+	// inside the box
+		// mirrors
+	list[i++] = new Rect(554, 554.001f, 139, 417, 111, 444, glm::vec3(-1, 0, 0), new metal(glm::vec3(1.0, 1.0, 1.0), 0.0));
+	list[i++] = new Sphere(glm::vec3(150, 100, 150), 80, white);
+	list[i++] = new Cube(glm::vec3(400, 150, 333), glm::vec3(80, 150, 80), glm::vec3(0, 45 * M_PI / 180, 0), white);
+
+	return new HitableList(list, i);
+}
+
+Camera set_camera_simple()
+{
+	float FOV = 60.0;
+	glm::vec3 cam_pos(2, 2, 1);
+	glm::vec3 cam_target(0, 0, 0);
+	float cam_aperture = 0.05;
+	float focus_dis = glm::length(cam_pos - cam_target);
+	Camera cam(FOV, float(nx) / float(ny), cam_pos, cam_target, glm::vec3(0.0, 1.0, 0.0), cam_aperture, focus_dis);
+	return cam;
+}
+
+Camera set_camera_cornell_box()
+{
+	float FOV = 40.0;
+	glm::vec3 cam_pos(278, 278, -800);
+	glm::vec3 cam_target(278, 278, 0);
+	float cam_aperture = 0.0;
+	float focus_dis = 10;
+	Camera cam(FOV, float(nx) / float(ny), cam_pos, cam_target, glm::vec3(0.0, 1.0, 0.0), cam_aperture, focus_dis);
+	return cam;
 }
 
 int main(void)
 {
     // P6_Intersect("./outputs/pure_color_sphere.ppm", 512, 512);
 	int progress_percentage = 0;
-
-    // old scenes
-    //Hitable *list[7];
-    //list[0] = new Sphere(glm::vec3(0, 0, -1.5), 0.5, new lambertian(glm::vec3(0.3, 0.3, 0.8)));
-    //list[1] = new Sphere(glm::vec3(0, -100.5, -1.5), 100, new lambertian(glm::vec3(0.5, 0.5, 0.5)));
-    //list[2] = new Sphere(glm::vec3(1.2, 0, -1.5), 0.5, new lambertian(glm::vec3(0.8, 0.6, 0.2)));
-    //list[3] = new Sphere(glm::vec3(-1.8, 0, -1.5), 0.5, new metal(glm::vec3(0.3, 0.9, 0.3), 0.01));
-    //list[4] = new Sphere(glm::vec3(0.4, -0.2, -1.0), 0.3, new dielectirc(glm::vec3(1.0, 1.0, 1.0), 1.3));
-    //list[5] = new Sphere(glm::vec3(-0.5, -0.15, -1.0), 0.35, new dielectirc(glm::vec3(1.0, 0, 0), 1.1));
-    //list[6] = new Sphere(glm::vec3(-0.5, -0.15, -1.0), -0.3, new dielectirc(glm::vec3(1.0, 0, 0), 1.1));
-    //Hitable *world = new HitableList(list, 7);
     
-    Hitable *world = light_scene();
-
-	glm::vec3 cam_pos(2,2,1);
-	glm::vec3 cam_target(0, 0, -1);
-	float cam_aperture = 0.05;
-	float focus_dis = glm::length(cam_pos - cam_target);
-    Camera cam(FOV, float(nx)/float(ny), cam_pos, cam_target, glm::vec3(0.0, 1.0, 0.0), cam_aperture, focus_dis);
+	Hitable* world = cornell_box();
+	Camera cam = set_camera_cornell_box();
 
     std::ofstream output;
 #ifdef __APPLE__
     output.open("./outputs/MacOS_light_scene_emitted_4.0_farDistance.ppm", std::ofstream::binary);
 #elif defined(_WIN32) || defined(_WIN64)
-    output.open("D:\\C++Projects\\RayTracer\\outputs\\Win32_DepthOfViewTest_low_aperture.ppm", std::ofstream::binary);
+    output.open("D:\\C++Projects\\RayTracer\\outputs\\Win32_cornell_box_with_mirror.ppm", std::ofstream::binary);
 #endif
     output << "P6\n" << nx << "\n" << ny << "\n255\n";
     for (int j = ny-1; j >= 0; j--)

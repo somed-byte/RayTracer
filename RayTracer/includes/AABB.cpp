@@ -14,14 +14,14 @@ bool aabb::hit(const Ray& ray, float t_min, float t_max, float& t0, float& t1) c
 	glm::vec2 yz = glm::vec2(tmin.y, tmin.z);
 	glm::vec2 t = glm::max(xx, yz);
 	t0 = fmax(t.x, t.y);// get the biggest out of 2
-	t0 = fmin(t_max, t0);
+	t0 = t0 > t_min ? t0 : t_min;
 
 	// get smallest 2 components out of 3
 	xx = glm::vec2(tmax.x, tmax.x);
 	yz = glm::vec2(tmax.y, tmax.z);
 	t = glm::min(xx, yz);
 	t1 = fmin(t.x, t.y);// get the smallest out of 2
-	t1 = fmax(t_min, t1);
+	t1 = t1 < t_max ? t1 : t_max;
 
 	return t0 <= t1;
 };

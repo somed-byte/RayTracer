@@ -33,7 +33,7 @@
     <ClCompile Include="includes\drand48.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="AABB.cpp">
+    <ClCompile Include="includes\AABB.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -53,7 +53,7 @@
     <ClInclude Include="includes\drand48.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AABB.hpp">
+    <ClInclude Include="includes\AABB.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

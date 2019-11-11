@@ -37,32 +37,80 @@ bool Sphere::hit(const Ray& r, float t_min, float t_max, hit_record& rec) const
     return false;
 };
 
-bool Rect_xy::hit(const Ray& r, float t_min, float t_max, hit_record& rec) const
+bool Rect::hit(const Ray& r, float t_min, float t_max, hit_record& rec) const
 {
-	/* // TODO
+	// TODO
 	float tnear, tfar;
 	if (xybox.hit(r, t_min, t_max, tnear, tfar))
 	{
 		rec.t = tnear;
 		rec.p = r.point(tnear);
-		rec.normal = glm::vec3(0, 0, 1);
+		rec.normal = normal;
 		rec.mat_ptr = mat;
 		return true;
 	}
 	return false;
+};
+
+Cube::Cube(glm::vec3 center, glm::vec3 len, glm::vec3 _rotation, material *mat)
+{
+	rotation = glm::mat4(1.0f);
+	rotation = glm::rotate(rotation, _rotation.x, glm::vec3(1, 0, 0));
+	rotation = glm::rotate(rotation, _rotation.y, glm::vec3(0, 1, 0));
+	rotation = glm::rotate(rotation, _rotation.z, glm::vec3(0, 0, 1));
+
+	glm::vec4 c1 = glm::vec4(center.x + len.x, center.y - len.y, center.z - len.z, 1.0);
+	glm::vec4 c2 = glm::vec4(center.x - len.x, center.y - len.y, center.z - len.z, 1.0);
+	glm::vec4 c3 = glm::vec4(center.x - len.x, center.y - len.y, center.z + len.z, 1.0);
+	glm::vec4 c4 = glm::vec4(center.x + len.x, center.y - len.y, center.z + len.z, 1.0);
+
+	glm::vec4 c5 = glm::vec4(center.x + len.x, center.y + len.y, center.z - len.z, 1.0);
+	glm::vec4 c6 = glm::vec4(center.x - len.x, center.y + len.y, center.z - len.z, 1.0);
+	glm::vec4 c7 = glm::vec4(center.x - len.x, center.y + len.y, center.z + len.z, 1.0);
+	glm::vec4 c8 = glm::vec4(center.x + len.x, center.y + len.y, center.z + len.z, 1.0);
+
+	c1 = rotation * c1;
+	c2 = rotation * c2;
+	c3 = rotation * c3;
+	c4 = rotation * c4;
+	c5 = rotation * c5;
+	c6 = rotation * c6;
+	c7 = rotation * c7;
+	c8 = rotation * c8;
+
+	glm::vec3 n1 = rotation * glm::vec4(0, 0, -1, 0);
+	glm::vec3 n2 = rotation * glm::vec4(0, 0, 1, 0);
+	glm::vec3 n3 = rotation * glm::vec4(-1, 0, 0, 0);
+	glm::vec3 n4 = rotation * glm::vec4(1, 0, 0, 0);
+	glm::vec3 n5 = rotation * glm::vec4(0, -1, 0, 0);
+	glm::vec3 n6 = rotation * glm::vec4(0, 1, 0, 0);
+
+	Hitable** l = new Hitable*[6];
+	int i = 0;
+	l[i++] = new Rect(c2.x, c1.x, c2.y, c5.y, c1.z, c1.z + 0.001f, n1, mat);
+	l[i++] = new Rect(c2.x, c1.x, c2.y, c5.y, c3.z, c3.z + 0.001f, n2, mat);
+
+	l[i++] = new Rect(c2.x, c2.x + 0.001f, c2.y, c5.y, c1.z, c3.z, n3, mat);
+	l[i++] = new Rect(c1.x, c1.x + 0.001f, c2.y, c5.y, c1.z, c3.z, n4, mat);
+
+	l[i++] = new Rect(c2.x, c1.x, c2.y, c2.y + 0.001f, c1.z, c3.z, n5, mat);
+	l[i++] = new Rect(c2.x, c1.x, c5.y, c5.y + 0.001f, c1.z, c3.z, n5, mat);
+	/*
+	l[i++] = new Rect(center.x - len.x, center.x + len.x, center.y - len.y, center.y + len.y, center.z - len.z, center.z - len.z + 0.001f, glm::vec3(0, 0, -1), mat);
+	l[i++] = new Rect(center.x - len.x, center.x + len.x, center.y - len.y, center.y + len.y, center.z + len.z, center.z + len.z + 0.001f, glm::vec3(0, 0, 1), mat);
+
+	l[i++] = new Rect(center.x - len.x, center.x - len.x + 0.001f, center.y - len.y, center.y + len.y, center.z - len.z, center.z + len.z, glm::vec3(-1, 0, 0), mat);
+	l[i++] = new Rect(center.x + len.x, center.x + len.x + 0.001f, center.y - len.y, center.y + len.y, center.z - len.z, center.z + len.z, glm::vec3(1, 0, 0), mat);
+
+	l[i++] = new Rect(center.x - len.x, center.x + len.x, center.y - len.y, center.y - len.y + 0.001f, center.z - len.z, center.z + len.z, glm::vec3(0, -1, 0), mat);
+	l[i++] = new Rect(center.x - len.x, center.x + len.x, center.y + len.y, center.y + len.y + 0.001f, center.z - len.z, center.z + len.z, glm::vec3(0, 1, 0), mat);
 	*/
-	float t = (z-r.origin().z )/ r.direction().z;
-    if (t < t_min || t > t_max)
-        return false;
-    float x = r.origin().x + t*r.direction().x;
-    float y = r.origin().y + t*r.direction().y;
-    if (x < x0 || x > x1 || y < y0 || y > y1)
-        return false;
-    rec.t = t;
-    rec.mat_ptr = mat;
-    rec.p = r.point(t);
-    rec.normal = glm::vec3(0, 0, 1);
-    return true;
+	list = new HitableList(l, i);
+};
+
+bool Cube::hit(const Ray& r, float t_min, float t_max, hit_record& rec) const
+{
+	return list->hit(r, t_min, t_max, rec);
 };
 
 bool HitableList::hit(const Ray& r, float t_min, float t_max, hit_record& rec) const
