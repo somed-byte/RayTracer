@@ -2,7 +2,7 @@
 #include <fstream>
 #include <float.h>
 #include <thread>
-#include <shared_mutex>
+#include <time.h>
 #include "Camera.hpp"
 #include "Ray.hpp"
 #include "Hitable.hpp"
@@ -12,15 +12,16 @@
 #define PBWIDTH 60
 #define NUM_THREAD 8
 
-const int nx = 480;
-const int ny = 360;
-const int ns = 300;
+//	basic resolutions // aspect // multiplier
+const int nx = 120 * 4 * 1;
+const int ny = 120 * 3 * 1;
+const int ns = 500;
 
-void printProgress(double percentage);
+void printProgress(double &percentage);
 void WritePPM_P3(const char* filename, int nx, int ny);
 void WritePPM_P6(const char* filename, int nx, int ny);
 glm::vec3 color(const Ray& r, Hitable *world, int depth);
-void color_thread(int j0, int j1, Camera cam, Hitable* world, glm::vec3* c, int id);
+void color_thread(int j0, int j1, Camera cam, Hitable* world, glm::vec3* c, int id, double& pb);
 
 Hitable* simple_scene()
 {
@@ -101,7 +102,7 @@ int main(void)
     // P6_Intersect("./outputs/pure_color_sphere.ppm", 512, 512);
     
 #ifdef __APPLE__
-	const char* file_path = "./outputs/MacOS_cornell_box_final.ppm";
+	const char* file_path = "./outputs/MacOS_multi_thread_high_AA&Resolution.ppm";
 #elif defined(_WIN32) || defined(_Win64)
 	const char* file_path = "D:\\C++Projects\\RayTracer\\outputs\\Win32_multi_thread_final.ppm";
 #endif // __APPLE__
@@ -121,8 +122,14 @@ int main(void)
 		color[i].z = 0.0;
 	}
 
+	// timer counting
+	time_t timer;
+	float start = time(&timer);
+	
+#pragma region MultiThreadProcess
 	// multi thread proccessing
 	std::thread t[NUM_THREAD];
+	double progress;
 
 	unsigned concurentThreadsSupported = std::thread::hardware_concurrency();
 	std::cout << "Number of Threads Supported:" << concurentThreadsSupported << std::endl;
@@ -130,9 +137,8 @@ int main(void)
 
 	for (int k = 0; k < NUM_THREAD; ++k)
 	{
-		t[k] = std::thread(color_thread, k * int(ny/NUM_THREAD), (k + 1) * int(ny/NUM_THREAD), cam, world, color, k);
+		t[k] = std::thread(color_thread, k * int(ny/NUM_THREAD), (k + 1) * int(ny/NUM_THREAD), cam, world, color, k, std::ref(progress));
 	}
-	//t[NUM_THREAD - 1] = std::thread(progress_thread);
 	
 	for (int k = 0; k < NUM_THREAD; ++k)
 	{
@@ -152,6 +158,9 @@ int main(void)
 			output.write((char*)&bi, sizeof(bi));
 		}
 	}
+#pragma endregion
+
+#pragma region SingleThreadOutput
 	// single thread output
 	/*
     for (int j = ny-1; j >= 0; j--)
@@ -183,18 +192,21 @@ int main(void)
         }
     }
 	*/
-    output.close();
-
+#pragma endregion
+    float end = time(&timer);
+	std::cout << "\nTotal Render time consumption:" << (end - start)/60 << "mins" << std::endl;
+	output.close();
     delete world;
 }
 
-void color_thread(int j0, int j1, Camera cam, Hitable* world, glm::vec3* c, int id)
+void color_thread(int j0, int j1, Camera cam, Hitable* world, glm::vec3* c, int id, double& pb)
 {
 	for (int j = j0; j < j1; ++j)
 	{
 		for (int i = 0; i < nx; ++i)
 		{
 			//std::unique_lock<std::shared_mutex> lock(mx);
+			pb ++;
 			int index = j * nx + i;
 			for (int s = 0; s < ns; ++s)
 			{
@@ -205,8 +217,7 @@ void color_thread(int j0, int j1, Camera cam, Hitable* world, glm::vec3* c, int 
 			}
 			c[index] /= float(ns);
 			c[index] = glm::sqrt(c[index]);
-			printf("\rRendering...");
-			fflush(stdout);
+			printProgress(pb);
 		}
 	}
 }
@@ -291,10 +302,11 @@ void WritePPM_P6(const char* filename, int nx, int ny)
     output.close();
 }
 
-void printProgress(double percentage)
+void printProgress(double &percentage)
 {
-	int val = (int)(percentage * 100);
-	int lpad = (int)(percentage * PBWIDTH);
+	double p = percentage / double(nx * ny);
+	int val = (int)(p * 100);
+	int lpad = (int)(p * PBWIDTH);
 	int rpad = PBWIDTH - lpad;
 	printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
 	fflush(stdout);
