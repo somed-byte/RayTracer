@@ -15,13 +15,13 @@
 //	basic resolutions // aspect // multiplier
 const int nx = 120 * 4 * 1;
 const int ny = 120 * 3 * 1;
-const int ns = 500;
+const int ns = 400;
 
-void printProgress(double &percentage);
+void printProgress(int &percentage);
 void WritePPM_P3(const char* filename, int nx, int ny);
 void WritePPM_P6(const char* filename, int nx, int ny);
 glm::vec3 color(const Ray& r, Hitable *world, int depth);
-void color_thread(int j0, int j1, Camera cam, Hitable* world, glm::vec3* c, int id, double& pb);
+void color_thread(int j0, int j1, Camera cam, Hitable* world, glm::vec3* c, int id, int& pb);
 
 Hitable* simple_scene()
 {
@@ -43,7 +43,7 @@ Hitable* light_scene()
 	list[1] = new Sphere(glm::vec3(0, -1000.5, -1.5), 1000, new lambertian(glm::vec3(0.5, 0.5, 0.5)));
 	list[2] = new Sphere(glm::vec3(2.0, 0, -1.5), 0.5, new lambertian(glm::vec3(0.8, 0.6, 0.2)));
 	list[3] = new Sphere(glm::vec3(1.0, 0, -1.0), 0.3, new DiffuseLight(glm::vec3(4.0, 4.0, 4.0)));
-	list[4] = new Rect(-1, 1, 0, 1, -5, -5 + 0.0001, glm::vec3(0, 0, 1), new DiffuseLight(glm::vec3(4.0, 4.0, 4.0)));
+	list[4] = new Rect(-1, 1, 0, 1, -3, -3 + 0.0001, glm::vec3(0, 0, 1), new DiffuseLight(glm::vec3(2.0, 2.0, 2.0)));
 	return new HitableList(list, 5);
 }
 
@@ -63,7 +63,7 @@ Hitable* cornell_box()
 	list[i++] = new Rect(0, 5, 0, 0.001f, 0, 5, glm::vec3(0, 1, 0), white);
 	list[i++] = new Rect(0, 5, 0, 5, 5, 5.001f, glm::vec3(0, 0, -1), white);
 	// diffuse light: 1
-	list[i++] = new Rect(1.9, 3.1, 5, 5.001f, 2.2, 3.4, glm::vec3(0, -1, 0), light);
+	list[i++] = new Rect(1.9, 3.1, 4.95, 4.951f, 2.2, 3.4, glm::vec3(0, -1, 0), light);
 
 	// inside the box
 		// mirrors
@@ -78,7 +78,7 @@ Camera set_camera_simple()
 {
 	float FOV = 60.0;
 	glm::vec3 cam_pos(2, 2, 1);
-	glm::vec3 cam_target(0, 0, 0);
+	glm::vec3 cam_target(0, 0, -2);
 	float cam_aperture = 0.05;
 	float focus_dis = glm::length(cam_pos - cam_target);
 	Camera cam(FOV, float(nx) / float(ny), cam_pos, cam_target, glm::vec3(0.0, 1.0, 0.0), cam_aperture, focus_dis);
@@ -104,7 +104,7 @@ int main(void)
 #ifdef __APPLE__
 	const char* file_path = "./outputs/MacOS_multi_thread_high_AA&Resolution.ppm";
 #elif defined(_WIN32) || defined(_Win64)
-	const char* file_path = "D:\\C++Projects\\RayTracer\\outputs\\Win32_multi_thread_final.ppm";
+	const char* file_path = "D:\\C++Projects\\RayTracer\\outputs\\Win32_multi_thread_cornell_box.ppm";
 #endif // __APPLE__
 
 	Hitable* world = cornell_box();
@@ -129,7 +129,8 @@ int main(void)
 #pragma region MultiThreadProcess
 	// multi thread proccessing
 	std::thread t[NUM_THREAD];
-	double progress;
+
+	int progress = 0;
 
 	unsigned concurentThreadsSupported = std::thread::hardware_concurrency();
 	std::cout << "Number of Threads Supported:" << concurentThreadsSupported << std::endl;
@@ -150,6 +151,7 @@ int main(void)
 		for (int i = 0; i < nx; i++)
 		{
 			int index = j * nx + i;
+			color[index] = glm::clamp(color[index], glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
 			unsigned char ri = (unsigned char)(255.99f * color[index].r);
 			unsigned char gi = (unsigned char)(255.99f * color[index].g);
 			unsigned char bi = (unsigned char)(255.99f * color[index].b);
@@ -193,13 +195,14 @@ int main(void)
     }
 	*/
 #pragma endregion
+
     float end = time(&timer);
 	std::cout << "\nTotal Render time consumption:" << (end - start)/60 << "mins" << std::endl;
 	output.close();
     delete world;
 }
 
-void color_thread(int j0, int j1, Camera cam, Hitable* world, glm::vec3* c, int id, double& pb)
+void color_thread(int j0, int j1, Camera cam, Hitable* world, glm::vec3* c, int id, int& pb)
 {
 	for (int j = j0; j < j1; ++j)
 	{
@@ -302,7 +305,7 @@ void WritePPM_P6(const char* filename, int nx, int ny)
     output.close();
 }
 
-void printProgress(double &percentage)
+void printProgress(int &percentage)
 {
 	double p = percentage / double(nx * ny);
 	int val = (int)(p * 100);
