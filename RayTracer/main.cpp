@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <float.h>
+#include <thread>
+#include <shared_mutex>
 #include "Camera.hpp"
 #include "Ray.hpp"
 #include "Hitable.hpp"
@@ -8,15 +10,17 @@
 
 #define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
 #define PBWIDTH 60
+#define NUM_THREAD 8
 
-const int nx = 800;
-const int ny = 600;
-const int ns = 200;
+const int nx = 480;
+const int ny = 360;
+const int ns = 300;
 
 void printProgress(double percentage);
 void WritePPM_P3(const char* filename, int nx, int ny);
 void WritePPM_P6(const char* filename, int nx, int ny);
 glm::vec3 color(const Ray& r, Hitable *world, int depth);
+void color_thread(int j0, int j1, Camera cam, Hitable* world, glm::vec3* c, int id);
 
 Hitable* simple_scene()
 {
@@ -58,13 +62,13 @@ Hitable* cornell_box()
 	list[i++] = new Rect(0, 5, 0, 0.001f, 0, 5, glm::vec3(0, 1, 0), white);
 	list[i++] = new Rect(0, 5, 0, 5, 5, 5.001f, glm::vec3(0, 0, -1), white);
 	// diffuse light: 1
-	list[i++] = new Rect(2.2, 3.4, 5, 5.001f, 2.3, 3.3, glm::vec3(0, -1, 0), light);
+	list[i++] = new Rect(1.9, 3.1, 5, 5.001f, 2.2, 3.4, glm::vec3(0, -1, 0), light);
 
 	// inside the box
 		// mirrors
 	list[i++] = new Rect(4.99, 4.991f, 1.4, 4.1, 1.1, 4.4, glm::vec3(-1, 0, 0), new metal(glm::vec3(1.0, 1.0, 1.0), 0.0));
 	list[i++] = new Sphere(glm::vec3(1.5, 1, 1.), 0.8, white);
-	list[i++] = new Cube(glm::vec3(3.0, 1, 2.5), glm::vec3(0.6, 1, 0.6), glm::vec3(0, glm::radians(45.0f), 0), white);
+	list[i++] = new Cube(glm::vec3(4.2, 1.2, 2.5), glm::vec3(0.6, 1.2, 0.6), glm::vec3(0, glm::radians(45.0f), 0), white);
 
 	return new HitableList(list, i);
 }
@@ -91,21 +95,65 @@ Camera set_camera_cornell_box()
 	return cam;
 }
 
+
 int main(void)
 {
     // P6_Intersect("./outputs/pure_color_sphere.ppm", 512, 512);
-	int progress_percentage = 0;
     
+#ifdef __APPLE__
+	const char* file_path = "./outputs/MacOS_cornell_box_final.ppm";
+#elif defined(_WIN32) || defined(_Win64)
+	const char* file_path = "D:\\C++Projects\\RayTracer\\outputs\\Win32_multi_thread_final.ppm";
+#endif // __APPLE__
+
 	Hitable* world = cornell_box();
 	Camera cam = set_camera_cornell_box();
 
     std::ofstream output;
-#ifdef __APPLE__
-    output.open("./outputs/MacOS_cornell_box_final.ppm", std::ofstream::binary);
-#elif defined(_WIN32) || defined(_WIN64)
-    output.open("D:\\C++Projects\\RayTracer\\outputs\\Win32_cornell_box_with_mirror.ppm", std::ofstream::binary);
-#endif
+    output.open(file_path, std::ofstream::binary);
     output << "P6\n" << nx << "\n" << ny << "\n255\n";
+
+	glm::vec3* color = new glm::vec3[nx * ny];
+	for (int i = 0; i < nx * ny; ++i)
+	{
+		color[i].x = 0.0;
+		color[i].y = 0.0;
+		color[i].z = 0.0;
+	}
+
+	// multi thread proccessing
+	std::thread t[NUM_THREAD];
+
+	unsigned concurentThreadsSupported = std::thread::hardware_concurrency();
+	std::cout << "Number of Threads Supported:" << concurentThreadsSupported << std::endl;
+	std::cout << "Number of Current using Threads:" << NUM_THREAD << std::endl;
+
+	for (int k = 0; k < NUM_THREAD; ++k)
+	{
+		t[k] = std::thread(color_thread, k * int(ny/NUM_THREAD), (k + 1) * int(ny/NUM_THREAD), cam, world, color, k);
+	}
+	//t[NUM_THREAD - 1] = std::thread(progress_thread);
+	
+	for (int k = 0; k < NUM_THREAD; ++k)
+	{
+		t[k].join();
+	}
+
+	for(int j = ny - 1; j >= 0; j--)
+	{
+		for (int i = 0; i < nx; i++)
+		{
+			int index = j * nx + i;
+			unsigned char ri = (unsigned char)(255.99f * color[index].r);
+			unsigned char gi = (unsigned char)(255.99f * color[index].g);
+			unsigned char bi = (unsigned char)(255.99f * color[index].b);
+			output.write((char*)&ri, sizeof(ri));
+			output.write((char*)&gi, sizeof(gi));
+			output.write((char*)&bi, sizeof(bi));
+		}
+	}
+	// single thread output
+	/*
     for (int j = ny-1; j >= 0; j--)
     {
         for(int i = 0; i < nx; i++)
@@ -134,9 +182,33 @@ int main(void)
 			printProgress(progress_percentage/(double)(nx * ny));
         }
     }
+	*/
     output.close();
 
     delete world;
+}
+
+void color_thread(int j0, int j1, Camera cam, Hitable* world, glm::vec3* c, int id)
+{
+	for (int j = j0; j < j1; ++j)
+	{
+		for (int i = 0; i < nx; ++i)
+		{
+			//std::unique_lock<std::shared_mutex> lock(mx);
+			int index = j * nx + i;
+			for (int s = 0; s < ns; ++s)
+			{
+				float u = float(i + wdrand48()) / float(nx);
+				float v = float(j + wdrand48()) / float(ny);
+				Ray r = cam.get_ray(u, v);
+				c[index] += color(r, world, 0);
+			}
+			c[index] /= float(ns);
+			c[index] = glm::sqrt(c[index]);
+			printf("\rRendering...");
+			fflush(stdout);
+		}
+	}
 }
 
 /// @para: depth(each ray max-hits) 
@@ -148,7 +220,7 @@ glm::vec3 color(const Ray& r, Hitable *world, int depth)
         Ray scattered;
         glm::vec3 attenuation; // to store the current hit color
         glm::vec3 emitted = rec.mat_ptr->emitted();
-        if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+        if (depth < 50  && rec.mat_ptr->scatter(r, rec, attenuation, scattered))
         {
             return emitted + attenuation * color(scattered, world, depth+1);
         }
