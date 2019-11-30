@@ -307,7 +307,7 @@ void WritePPM_P6(const char* filename, int nx, int ny)
 
 void printProgress(int &percentage)
 {
-	double p = percentage / double(nx * ny);
+	double p = percentage / float(nx * ny);
 	int val = (int)(p * 100);
 	int lpad = (int)(p * PBWIDTH);
 	int rpad = PBWIDTH - lpad;
