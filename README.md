@@ -1,8 +1,6 @@
 # Simple Ray Tracer 
 
-* following ray tracing in one weekend
-
-## Completed parts
+## Completed
 
 * Output in PPM6 format
 
