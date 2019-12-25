@@ -13,8 +13,8 @@
 #define NUM_THREAD 8
 
 //	basic resolutions // aspect // multiplier
-const int nx = 120 * 4 * 1;
-const int ny = 120 * 3 * 1;
+const int nx = 120 * 4 * 2;
+const int ny = 120 * 3 * 2;
 const int ns = 400;
 
 void printProgress(int &percentage);
@@ -54,6 +54,7 @@ Hitable* cornell_box()
 	material* red = new lambertian(glm::vec3(0.65, 0.05, 0.05));
 	material* green = new lambertian(glm::vec3(0.12, 0.45, 0.15));
 	material* white = new lambertian(glm::vec3(0.73, 0.73, 0.73));
+	material* dielectirc_mat = new dielectirc(glm::vec3(1.0, 1.0, 1.0), 1.3);
 	material* light = new DiffuseLight(glm::vec3(15, 15, 15));
 	// cornell box: 5
 	//x0  x1  y0  y1  z0  z1
@@ -68,7 +69,10 @@ Hitable* cornell_box()
 	// inside the box
 		// mirrors
 	list[i++] = new Rect(4.99, 4.991f, 1.4, 4.1, 1.1, 4.4, glm::vec3(-1, 0, 0), new metal(glm::vec3(1.0, 1.0, 1.0), 0.0));
-	list[i++] = new Sphere(glm::vec3(1.5, 1, 1.), 0.8, white);
+	list[i++] = new Sphere(glm::vec3(1.5, 1, 3), 0.8, white);
+	list[i++] = new Sphere(glm::vec3(3, 1, 1), 0.6, dielectirc_mat);
+	list[i++] = new Sphere(glm::vec3(2.1, 2.5, 1), 0.5, dielectirc_mat);
+	list[i++] = new Sphere(glm::vec3(2.1, 2.5, 1), -0.4, dielectirc_mat);
 	list[i++] = new Cube(glm::vec3(4.2, 1.2, 2.5), glm::vec3(0.6, 1.2, 0.6), glm::vec3(0, glm::radians(45.0f), 0), white);
 
 	return new HitableList(list, i);
@@ -104,7 +108,7 @@ int main(void)
 #ifdef __APPLE__
 	const char* file_path = "./outputs/MacOS_multi_thread_high_AA&Resolution.ppm";
 #elif defined(_WIN32) || defined(_Win64)
-	const char* file_path = "D:\\C++Projects\\RayTracer\\outputs\\Win32_multi_thread_cornell_box.ppm";
+	const char* file_path = "D:\\C++Projects\\RayTracer\\outputs\\Win32_multi_thread_cornell_box_final.ppm";
 #endif // __APPLE__
 
 	Hitable* world = cornell_box();
