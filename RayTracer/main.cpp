@@ -13,9 +13,9 @@
 #define NUM_THREAD 8
 
 //	basic resolutions // aspect // multiplier
-const int nx = 120 * 4 * 2;
-const int ny = 120 * 3 * 2;
-const int ns = 400;
+const int nx = 120 * 4 * 1;
+const int ny = 120 * 3 * 1;
+const int ns = 50;
 
 void printProgress(int &percentage);
 void WritePPM_P3(const char* filename, int nx, int ny);
@@ -49,7 +49,7 @@ Hitable* light_scene()
 
 Hitable* cornell_box()
 {
-	Hitable** list = new Hitable * [9];
+	Hitable** list = new Hitable * [12];
 	int i = 0;
 	material* red = new lambertian(glm::vec3(0.65, 0.05, 0.05));
 	material* green = new lambertian(glm::vec3(0.12, 0.45, 0.15));
@@ -106,7 +106,7 @@ int main(void)
     // P6_Intersect("./outputs/pure_color_sphere.ppm", 512, 512);
     
 #ifdef __APPLE__
-	const char* file_path = "./outputs/MacOS_multi_thread_high_AA&Resolution.ppm";
+	const char* file_path = "./outputs/MacOS_final.ppm";
 #elif defined(_WIN32) || defined(_Win64)
 	const char* file_path = "D:\\C++Projects\\RayTracer\\outputs\\Win32_multi_thread_cornell_box_final.ppm";
 #endif // __APPLE__
