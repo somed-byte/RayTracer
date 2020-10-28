@@ -15,7 +15,7 @@
 //	basic resolutions // aspect // multiplier
 const int nx = 120 * 4 * 1;
 const int ny = 120 * 3 * 1;
-const int ns = 50;
+const int ns = 12000;
 
 void printProgress(int &percentage);
 void WritePPM_P3(const char* filename, int nx, int ny);
@@ -80,6 +80,7 @@ Hitable* cornell_box()
 
 Camera set_camera_simple()
 {
+	// FOV  ”≥°
 	float FOV = 60.0;
 	glm::vec3 cam_pos(2, 2, 1);
 	glm::vec3 cam_target(0, 0, -2);
@@ -108,7 +109,7 @@ int main(void)
 #ifdef __APPLE__
 	const char* file_path = "./outputs/MacOS_final.ppm";
 #elif defined(_WIN32) || defined(_Win64)
-	const char* file_path = "D:\\C++Projects\\RayTracer\\outputs\\Win32_multi_thread_cornell_box_final.ppm";
+	const char* file_path = "C:\\cai_project_files\\class\\advanceCG\\projects\\RayTracer\\outputs\\Win32_multi_thread_cornell_box_final_ns12000.ppm";
 #endif // __APPLE__
 
 	Hitable* world = cornell_box();
